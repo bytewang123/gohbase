@@ -509,11 +509,11 @@ func (c *client) establishRegion(reg hrpc.RegionInfo, addr string) {
 			// master that we don't add to the cache
 			// TODO: consider combining this case with the regular regionserver path
 			client = c.newRegionClientFn(addr, c.clientType, c.rpcQueueSize, c.flushInterval,
-				c.effectiveUser, c.regionReadTimeout, nil)
+				c.effectiveUser, c.regionReadTimeout, nil, c.auth)
 		} else {
 			client = c.clients.put(addr, reg, func() hrpc.RegionClient {
 				return c.newRegionClientFn(addr, c.clientType, c.rpcQueueSize, c.flushInterval,
-					c.effectiveUser, c.regionReadTimeout, c.compressionCodec)
+					c.effectiveUser, c.regionReadTimeout, c.compressionCodec, c.auth)
 			})
 		}
 
@@ -593,7 +593,7 @@ func (c *client) zkLookup(ctx context.Context, resource zk.ResourceName) (string
 	// separate goroutine.
 	reschan := make(chan zkResult, 1)
 	go func() {
-		addr, err := c.zkClient.LocateResource(resource.Prepend(c.zkRoot))
+		addr, err := c.zkClient.LocateResource(resource.Prepend(c.zkRoot), c.auth)
 		// This is guaranteed to never block as the channel is always buffered.
 		reschan <- zkResult{addr, err}
 	}()

@@ -15,9 +15,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/go-zookeeper/zk"
 	"github.com/tsuna/gohbase/pb"
+	"github.com/wenbingshen/zk"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -52,7 +51,7 @@ const (
 
 // Client is an interface of client that retrieves meta infomation from zookeeper
 type Client interface {
-	LocateResource(ResourceName) (string, error)
+	LocateResource(ResourceName, string) (string, error)
 }
 
 type client struct {
@@ -69,8 +68,8 @@ func NewClient(zkquorum string, st time.Duration) Client {
 }
 
 // LocateResource returns address of the server for the specified resource.
-func (c *client) LocateResource(resource ResourceName) (string, error) {
-	conn, _, err := zk.Connect(c.zks, c.sessionTimeout)
+func (c *client) LocateResource(resource ResourceName, auth string) (string, error) {
+	conn, _, err := zk.Connect(c.zks, c.sessionTimeout, strings.ToLower(auth))
 	if err != nil {
 		return "", fmt.Errorf("error connecting to ZooKeeper at %v: %s", c.zks, err)
 	}
